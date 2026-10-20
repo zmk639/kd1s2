@@ -80,8 +80,27 @@ function run(\InstagramAPI\Instagram $ig): void
         masslooking($data, $ig, $delay);
 
     } catch (\Exception $e) {
-        output('ERROR: ' . $e->getMessage());
-        output('Restarting...');
+        $msg = $e->getMessage();
+        output('ERROR: ' . $msg);
+
+        // Fatal errors — stop immediately, no restart
+        $fatal = [
+            'Incorrect password',
+            'Username not found',
+            'Account disabled',
+            'Checkpoint required',
+            'Instagram Terms',
+            'Account flagged',
+        ];
+        foreach ($fatal as $f) {
+            if (stripos($msg, $f) !== false) {
+                output('Fatal error — stopping. Fix the issue and restart manually.');
+                exit(1);
+            }
+        }
+
+        output('Restarting in 10s...');
+        sleep(10);
         run($ig);
     }
 }

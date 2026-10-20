@@ -235,7 +235,7 @@ function cekpoint($url, $data, $csrf, $cookies, $ua){
     return $b;
 }
 
-function generate_useragent($sign_version = '107.0.0.27.121')
+function generate_useragent($sign_version = '269.0.0.18.75')
 {
     $resolusi = array(
         '1080x1776',
@@ -261,7 +261,7 @@ function generate_useragent($sign_version = '107.0.0.27.121')
         '240'
     );
     $ver      = $versi[array_rand($versi)];
-    return 'Instagram ' . $sign_version . ' Android (' . mt_rand(10, 11) . '/' . mt_rand(1, 3) . '.' . mt_rand(3, 5) . '.' . mt_rand(0, 5) . '; ' . $dpi[array_rand($dpi)] . '; ' . $resolusi[array_rand($resolusi)] . '; samsung; ' . $ver . '; ' . $ver . '; smdkc210; en_US)';
+    return 'Instagram ' . $sign_version . ' Android (' . mt_rand(12, 14) . '/' . mt_rand(1, 4) . '.' . mt_rand(3, 5) . '.' . mt_rand(0, 5) . '; ' . $dpi[array_rand($dpi)] . '; ' . $resolusi[array_rand($resolusi)] . '; samsung; ' . $ver . '; ' . $ver . '; smdkc210; en_US)';
 }
 
 function hook($data)

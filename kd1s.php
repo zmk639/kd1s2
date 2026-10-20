@@ -26,7 +26,14 @@ echo " Version : 10.0" . PHP_EOL;
 echo " GitHub  : https://github.com/zmk639/kd1s2" . PHP_EOL;
 echo PHP_EOL;
 
-$ig = new \InstagramAPI\Instagram(false, false);
+$storageConfig = [
+    'storage'    => 'file',
+    'basefolder' => __DIR__ . '/sessions',
+];
+if (!is_dir(__DIR__ . '/sessions')) {
+    mkdir(__DIR__ . '/sessions', 0755, true);
+}
+$ig = new \InstagramAPI\Instagram(false, false, $storageConfig);
 run($ig);
 
 // ─── Main entry ──────────────────────────────────────────────────────────────

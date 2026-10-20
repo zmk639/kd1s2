@@ -37,31 +37,7 @@ def banner():
 def login(username, password):
     cl = Client()
     cl.delay_range = [2, 5]
-    # Use a known working device UUID to avoid bloks_versioning_id error
-    import uuid
-    device_id = "android-" + str(uuid.uuid4()).replace("-", "")[:16]
-    cl.set_settings({
-        "device_settings": {
-            "app_version": "269.0.0.18.75",
-            "android_version": 30,
-            "android_release": "11",
-            "dpi": "420dpi",
-            "resolution": "1080x2340",
-            "manufacturer": "OnePlus",
-            "device": "OnePlus8Pro",
-            "model": "IN2025",
-            "cpu": "qcom",
-            "version_code": "314665256"
-        },
-        "user_agent": "Instagram 269.0.0.18.75 Android (30/11; 420dpi; 1080x2340; OnePlus; OnePlus8Pro; OnePlus8Pro; qcom; en_US; 314665256)",
-        "uuids": {
-            "phone_id": str(uuid.uuid4()),
-            "uuid": str(uuid.uuid4()),
-            "client_session_id": str(uuid.uuid4()),
-            "advertising_id": str(uuid.uuid4()),
-            "device_id": device_id
-        }
-    })
+    cl.bloks_versioning_id = "799db3e387d7a21a19c72918b8698b6cd28a1516ade363792c100ed45a0f9f0b"
     log(f"[~] Logging in as @{username} ...")
     try:
         cl.login(username, password)

@@ -37,6 +37,19 @@ def banner():
 def login(username, password):
     cl = Client()
     cl.delay_range = [2, 5]
+    cl.set_device({
+        "app_version": "361.0.0.38.90",
+        "android_version": 34,
+        "android_release": "14",
+        "dpi": "480dpi",
+        "resolution": "1080x2400",
+        "manufacturer": "samsung",
+        "device": "SM-G998B",
+        "model": "samsung",
+        "cpu": "exynos2100",
+        "version_code": "568815743"
+    })
+    cl.set_user_agent("Instagram 361.0.0.38.90 Android (34/14; 480dpi; 1080x2400; samsung; SM-G998B; samsung; exynos2100; en_US; 568815743)")
     log(f"[~] Logging in as @{username} ...")
     try:
         cl.login(username, password)

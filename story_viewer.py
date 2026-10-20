@@ -2,49 +2,29 @@
 """
 Instagram Auto Story Viewer
 ============================
-Features:
-  - Mass story views (all followings)
-  - Auto Poll reactions
-  - Auto Slider reactions
-  - Auto Question answers
-  - Anti-block delays
-  - Runs in cycles every 30 minutes
-
-Usage:
-  python3 story_viewer.py <username> <password>
-  python3 story_viewer.py           (interactive)
-
-Install:
-  pip install igramscraper --break-system-packages
+Uses instagrapi - modern Instagram private API
+Install: pip install instagrapi --break-system-packages
 """
 
-import time
-import random
-import sys
+import time, random, sys
 from datetime import datetime
 
 try:
-    from igramscraper.instagram import Instagram
+    from instagrapi import Client
+    from instagrapi.exceptions import (
+        LoginRequired, ChallengeRequired, BadPassword, TwoFactorRequired
+    )
 except ImportError:
-    print("[!] Missing dependency. Run:")
-    print("    pip install igramscraper --break-system-packages")
+    print("[!] Run: pip install instagrapi --break-system-packages")
     sys.exit(1)
 
-# ─── CONFIG ───────────────────────────────────────────────────────────────────
-DELAY_MIN       = 3       # min seconds between story views
-DELAY_MAX       = 8       # max seconds between story views
-POLL_VOTE       = 0       # 0 = first option, 1 = second option
-SLIDER_VALUE    = 0.75    # slider reaction value (0.0 to 1.0)
-QUESTION_ANSWER = "Nice story!"
-CYCLE_WAIT      = 1800    # seconds between full cycles (30 min)
-MAX_FOLLOWING   = 500     # max accounts to fetch
-# ──────────────────────────────────────────────────────────────────────────────
-
+DELAY_MIN    = 4
+DELAY_MAX    = 9
+CYCLE_WAIT   = 1800
+MAX_FOLLOWING = 500
 
 def log(msg):
-    ts = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-    print(f"[{ts}] {msg}", flush=True)
-
+    print(f"[{datetime.now().strftime('%d-%m-%Y %H:%M:%S')}] {msg}", flush=True)
 
 def banner():
     print("""
@@ -54,139 +34,104 @@ def banner():
  ╚══════════════════════════════════════════╝
 """)
 
-
-def login(username: str, password: str) -> Instagram:
+def login(username, password):
+    cl = Client()
+    cl.delay_range = [2, 5]
     log(f"[~] Logging in as @{username} ...")
-    ig = Instagram()
-    ig.with_credentials(username, password)
     try:
-        ig.login(force=False, two_step_verificator=None)
+        cl.login(username, password)
         log("[+] Login successful!")
-        return ig
+        return cl
+    except BadPassword:
+        log("[!] Wrong password — check and retry")
+        sys.exit(1)
+    except ChallengeRequired:
+        log("[!] Challenge required — open Instagram app and verify, then retry")
+        sys.exit(1)
+    except TwoFactorRequired:
+        code = input("[?] 2FA code: ").strip()
+        cl.login(username, password, verification_code=code)
+        log("[+] Login successful with 2FA!")
+        return cl
     except Exception as e:
         log(f"[!] Login failed: {e}")
         sys.exit(1)
 
-
-def get_followings(ig: Instagram, username: str) -> list:
-    log("[~] Fetching following list ...")
-    try:
-        account   = ig.get_account(username)
-        result    = ig.get_following(
-            account.identifier,
-            count=MAX_FOLLOWING,
-            rank_token=Instagram.generate_uuid()
-        )
-        accounts  = result.get("accounts", [])
-        log(f"[+] Found {len(accounts)} accounts to check")
-        return accounts
-    except Exception as e:
-        log(f"[!] Could not fetch followings: {e}")
-        return []
-
-
-def view_user_stories(ig: Instagram, account) -> int:
-    """View all stories of one account and react to interactive elements."""
-    try:
-        data = ig.get_stories(userids=[account.identifier])
-        if not data or not data.get("items"):
-            return 0
-
-        viewed = 0
-        for story in data["items"]:
-            try:
-                # ── View ──────────────────────────────────────────────────
-                ig.mark_story_as_seen(story)
-                viewed += 1
-                log(f"[+] Viewed  @{account.username}  story {story.pk}")
-
-                # ── Poll ──────────────────────────────────────────────────
-                polls = getattr(story, "story_polls", None)
-                if polls:
-                    try:
-                        poll_id = polls[0]["poll_sticker_id"]
-                        ig.vote_poll(story.pk, poll_id, POLL_VOTE)
-                        log(f"[~] Poll    @{account.username}")
-                    except Exception:
-                        pass
-
-                # ── Slider ────────────────────────────────────────────────
-                sliders = getattr(story, "story_sliders", None)
-                if sliders:
-                    try:
-                        slider_id = sliders[0]["slider_sticker_id"]
-                        ig.vote_slider(story.pk, slider_id, SLIDER_VALUE)
-                        log(f"[~] Slider  @{account.username}")
-                    except Exception:
-                        pass
-
-                # ── Question ──────────────────────────────────────────────
-                questions = getattr(story, "story_questions", None)
-                if questions:
-                    try:
-                        q_id = questions[0]["question_sticker_id"]
-                        ig.reply_to_question(story.pk, q_id, QUESTION_ANSWER)
-                        log(f"[~] Q&A     @{account.username}")
-                    except Exception:
-                        pass
-
-                time.sleep(random.uniform(DELAY_MIN, DELAY_MAX))
-
-            except Exception as e:
-                log(f"[!] Story error ({account.username}): {e}")
-                continue
-
-        return viewed
-
-    except Exception as e:
-        log(f"[!] Could not get stories for @{account.username}: {e}")
-        return 0
-
-
-def run(username: str, password: str):
-    ig    = login(username, password)
+def run(username, password):
+    cl    = login(username, password)
+    uid   = cl.user_id_from_username(username)
     total = 0
     cycle = 1
 
     while True:
-        log(f"\n{'='*50}")
-        log(f"  Cycle #{cycle} started")
-        log(f"{'='*50}")
+        log(f"\n{'='*48}\n  Cycle #{cycle}\n{'='*48}")
 
-        accounts = get_followings(ig, username)
-
-        if not accounts:
-            log("[!] Following list empty or error — retrying in 60s ...")
+        try:
+            followings = cl.user_following(uid, amount=MAX_FOLLOWING)
+        except Exception as e:
+            log(f"[!] Can't fetch followings: {e} — retry in 60s")
             time.sleep(60)
             continue
 
-        random.shuffle(accounts)   # randomise order to look natural
+        uids = list(followings.keys())
+        random.shuffle(uids)
+        log(f"[+] {len(uids)} accounts to check")
 
-        for acc in accounts:
-            total += view_user_stories(ig, acc)
+        for fuid in uids:
+            try:
+                stories = cl.user_stories(fuid)
+                if not stories:
+                    continue
+                uname = followings[fuid].username
+                for s in stories:
+                    try:
+                        cl.story_seen([s.pk])
+                        total += 1
+                        log(f"[+] Viewed @{uname} story {s.pk}")
 
-        log(f"\n[+] Cycle #{cycle} complete  |  Total stories viewed so far: {total}")
-        log(f"[~] Sleeping {CYCLE_WAIT // 60} minutes until next cycle ...")
+                        # Poll
+                        for sticker in (s.story_polls or []):
+                            try:
+                                cl.story_vote("poll", s.pk, sticker.id, 0)
+                                log(f"[~] Poll @{uname}")
+                            except: pass
+
+                        # Slider
+                        for sticker in (s.story_sliders or []):
+                            try:
+                                cl.story_vote("slider", s.pk, sticker.id, 0.75)
+                                log(f"[~] Slider @{uname}")
+                            except: pass
+
+                        # Question
+                        for sticker in (s.story_questions or []):
+                            try:
+                                cl.story_answer(s.pk, sticker.id, "Nice!")
+                                log(f"[~] Q&A @{uname}")
+                            except: pass
+
+                        time.sleep(random.uniform(DELAY_MIN, DELAY_MAX))
+                    except Exception as e:
+                        log(f"[!] Story err ({uname}): {e}")
+            except Exception as e:
+                log(f"[!] User {fuid} err: {e}")
+
+        log(f"\n[+] Cycle #{cycle} done | Total: {total}")
+        log(f"[~] Sleeping 30 min...")
         cycle += 1
         time.sleep(CYCLE_WAIT)
 
-
 def main():
     banner()
-
     if len(sys.argv) >= 3:
-        username = sys.argv[1]
-        password = sys.argv[2]
+        u, p = sys.argv[1], sys.argv[2]
     else:
-        username = input("[?] Instagram username : ").strip()
-        password = input("[?] Instagram password : ").strip()
-
-    if not username or not password:
-        print("[!] Username and password are required.")
+        u = input("[?] Username: ").strip()
+        p = input("[?] Password: ").strip()
+    if not u or not p:
+        print("[!] Username and password required")
         sys.exit(1)
-
-    run(username, password)
-
+    run(u, p)
 
 if __name__ == "__main__":
     main()

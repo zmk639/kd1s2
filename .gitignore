@@ -1,4 +1,4 @@
-vendor/
+# vendor/ — included in repo (mgp25 is DMCA'd on GitHub, can't install via Composer)
 *.sess
 sessions/
 *.log

@@ -19,12 +19,19 @@ from pathlib import Path
 
 try:
     from instagrapi import Client
-    from instagrapi.exceptions import (
-        LoginRequired, ChallengeRequired, TwoFactorRequired,
-        BadPassword, InvalidUser, UserNotFound,
-        ClientError, ClientConnectionError, ClientJSONDecodeError,
-        PleaseWaitFewMinutes, RateLimitError,
-    )
+    import instagrapi.exceptions as _igex
+
+    LoginRequired        = getattr(_igex, 'LoginRequired',        Exception)
+    ChallengeRequired    = getattr(_igex, 'ChallengeRequired',    Exception)
+    TwoFactorRequired    = getattr(_igex, 'TwoFactorRequired',    Exception)
+    BadPassword          = getattr(_igex, 'BadPassword',          Exception)
+    InvalidUser          = getattr(_igex, 'InvalidUser',          Exception)
+    UserNotFound         = getattr(_igex, 'UserNotFound',         Exception)
+    ClientError          = getattr(_igex, 'ClientError',          Exception)
+    ClientConnectionError= getattr(_igex, 'ClientConnectionError',Exception)
+    PleaseWaitFewMinutes = getattr(_igex, 'PleaseWaitFewMinutes', Exception)
+    RateLimitError       = getattr(_igex, 'RateLimitError',       Exception)
+    ClientJSONDecodeError= getattr(_igex, 'ClientJSONDecodeError',Exception)
 except ImportError:
     print("\n[ERROR] instagrapi not installed.")
     print("Run: pip install instagrapi\n")

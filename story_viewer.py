@@ -52,7 +52,7 @@ def login(username, password):
     cl.set_user_agent("Instagram 361.0.0.38.90 Android (34/14; 480dpi; 1080x2400; samsung; SM-G998B; samsung; exynos2100; en_US; 568815743)")
     log(f"[~] Logging in as @{username} ...")
     try:
-        cl.login(username, password)
+        cl.login(username, password, override_app_version=True)
         log("[+] Login successful!")
         return cl
     except BadPassword:

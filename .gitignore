@@ -1,0 +1,5 @@
+vendor/
+*.sess
+sessions/
+*.log
+.env

@@ -1,0 +1,19 @@
+{
+    "name": "zmk639/kd1s2",
+    "description": "Instagram Auto Story Viewer — Mass story views for followers of target accounts",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=7.4",
+        "mgp25/instagram-php": "^3.6",
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "autoload": {
+        "psr-4": {}
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    }
+}

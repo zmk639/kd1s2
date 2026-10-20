@@ -38,21 +38,21 @@ def login(username, password):
     cl = Client()
     cl.delay_range = [2, 5]
     cl.set_device({
-        "app_version": "361.0.0.38.90",
-        "android_version": 34,
-        "android_release": "14",
+        "app_version": "269.0.0.18.75",
+        "android_version": 30,
+        "android_release": "11",
         "dpi": "480dpi",
         "resolution": "1080x2400",
         "manufacturer": "samsung",
-        "device": "SM-G998B",
+        "device": "SM-G991B",
         "model": "samsung",
         "cpu": "exynos2100",
-        "version_code": "568815743"
+        "version_code": "425329739"
     })
-    cl.set_user_agent("Instagram 361.0.0.38.90 Android (34/14; 480dpi; 1080x2400; samsung; SM-G998B; samsung; exynos2100; en_US; 568815743)")
+    cl.set_user_agent("Instagram 269.0.0.18.75 Android (30/11; 480dpi; 1080x2400; samsung; SM-G991B; samsung; exynos2100; en_US; 425329739)")
     log(f"[~] Logging in as @{username} ...")
     try:
-        cl.login(username, password, override_app_version=True)
+        cl.login(username, password)
         log("[+] Login successful!")
         return cl
     except BadPassword:
